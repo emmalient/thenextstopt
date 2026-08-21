@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<title>The Next Stopt — Yönetim Paneli</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
+  body {
+    margin: 0;
+    font-family: 'Inter', sans-serif;
+    background: #D8E1E3;
+    color: #212121;
+    padding: 32px;
+  }
+  h1 {
+    font-family: Georgia, serif;
+    color: #401A1D;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  th, td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #D8E1E3;
+    font-size: 14px;
+  }
+  th {
+    background: #575B4A;
+    color: white;
+  }
+  tr:hover { background: #D8E1E3; }
+</style>
+</head>
+<body>
+  <h1>Erken Erişim Kayıtları</h1>
+  <table>
+    <thead>
+      <tr>
+        <th>İsim</th>
+        <th>E-posta</th>
+        <th>İlgi Alanı</th>
+        <th>Mesaj</th>
+        <th>Tarih</th>
+      </tr>
+    </thead>
+    <tbody id="kayit-govdesi">
+      <tr><td colspan="5">Yükleniyor...</td></tr>
+    </tbody>
+  </table>
+
+<script>
+  async function kayitlariGetir() {
+    const govde = document.getElementById('kayit-govdesi');
+    try {
+      const yanit = await fetch('/api/leads');
+      const veri = await yanit.json();
+
+      if (veri.basari && veri.kayitlar.length > 0) {
+        govde.innerHTML = '';
+        veri.kayitlar.forEach(kayit => {
+          const satir = document.createElement('tr');
+          satir.innerHTML = `
+            <td>${kayit.isim}</td>
+            <td>${kayit.eposta}</td>
+            <td>${kayit.ilgi_alani}</td>
+            <td>${kayit.mesaj || '-'}</td>
+            <td>${kayit.tarih}</td>
+          `;
+          govde.appendChild(satir);
+        });
+      } else {
+        govde.innerHTML = '<tr><td colspan="5">Henüz kayıt yok.</td></tr>';
+      }
+    } catch (hata) {
+      govde.innerHTML = '<tr><td colspan="5">Veriler yüklenirken hata oluştu.</td></tr>';
+    }
+  }
+
+  kayitlariGetir();
+</script>
+</body>
+</html>

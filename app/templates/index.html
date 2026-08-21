@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<title>The Next Stopt</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
+  body {
+    margin: 0;
+    font-family: 'Inter', sans-serif;
+    background: #D8E1E3;
+    color: #212121;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+  }
+  .kart {
+    background: rgba(255,255,255,0.6);
+    backdrop-filter: blur(10px);
+    border-radius: 16px;
+    padding: 32px;
+    width: 420px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+  }
+  h1 {
+    font-family: Georgia, serif;
+    color: #401A1D;
+    font-size: 24px;
+    margin-bottom: 4px;
+  }
+  p.slogan {
+    color: #4A5760;
+    margin-top: 0;
+    margin-bottom: 20px;
+  }
+  #sohbet-alani {
+    background: white;
+    border-radius: 10px;
+    padding: 12px;
+    height: 160px;
+    overflow-y: auto;
+    margin-bottom: 12px;
+    font-size: 14px;
+    white-space: pre-wrap;
+  }
+  input, textarea {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #6C868C;
+    border-radius: 8px;
+    box-sizing: border-box;
+    font-family: 'Inter', sans-serif;
+  }
+  button {
+    width: 100%;
+    padding: 10px;
+    background: #575B4A;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+    margin-bottom: 8px;
+  }
+  button:hover { background: #334340; }
+  hr { border: none; border-top: 1px solid #6C868C; margin: 20px 0; }
+</style>
+</head>
+<body>
+  <div class="kart">
+    <h1>The Next Stopt</h1>
+    <p class="slogan">Filmleri, mimariyi, sanatı ve kitapları keşfet, kaydet.</p>
+
+    <div id="sohbet-alani">Merhaba! The Next Stopt hakkında merak ettiğin bir şey var mı?</div>
+    <input type="text" id="mesaj-girisi" placeholder="Mesajını yaz...">
+    <button id="sor-butonu">Sor</button>
+
+    <hr>
+
+    <p class="slogan">Erken erişim listesine katıl</p>
+    <input type="text" id="isim-girisi" placeholder="Adın">
+    <input type="email" id="eposta-girisi" placeholder="E-posta adresin">
+    <button id="kaydet-butonu">Kaydet</button>
+  </div>
+
+<script>
+  const sohbetAlani = document.getElementById('sohbet-alani');
+  const mesajGirisi = document.getElementById('mesaj-girisi');
+  const sorButonu = document.getElementById('sor-butonu');
+
+  sorButonu.addEventListener('click', async () => {
+    const mesaj = mesajGirisi.value.trim();
+    if (!mesaj) return;
+
+    sohbetAlani.innerText += `\n\nSen: ${mesaj}`;
+    mesajGirisi.value = '';
+
+    try {
+      const yanit = await fetch('/api/sohbet', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mesaj: mesaj })
+      });
+      const veri = await yanit.json();
+      if (veri.basari) {
+        sohbetAlani.innerText += `\n\nThe Next Stopt: ${veri.cevap}`;
+      } else {
+        sohbetAlani.innerText += `\n\nHata: ${veri.hata}`;
+      }
+    } catch (hata) {
+      sohbetAlani.innerText += `\n\nBaglanti hatasi olustu.`;
+    }
+    sohbetAlani.scrollTop = sohbetAlani.scrollHeight;
+  });
+
+  const kaydetButonu = document.getElementById('kaydet-butonu');
+  kaydetButonu.addEventListener('click', async () => {
+    const isim = document.getElementById('isim-girisi').value.trim();
+    const eposta = document.getElementById('eposta-girisi').value.trim();
+    if (!isim || !eposta) {
+      alert('Lutfen adini ve e-postani gir.');
+      return;
+    }
+
+    try {
+      const yanit = await fetch('/api/leads', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ isim: isim, eposta: eposta, mesaj: '', ilgi_alani: 'genel' })
+      });
+      const veri = await yanit.json();
+      if (veri.basari) {
+        alert('Erken erisim listesine eklendin, tesekkurler!');
+        document.getElementById('isim-girisi').value = '';
+        document.getElementById('eposta-girisi').value = '';
+      } else {
+        alert('Hata: ' + veri.hata);
+      }
+    } catch (hata) {
+      alert('Baglanti hatasi olustu.');
+    }
+  });
+</script>
+</body>
+</html>
